@@ -2,11 +2,14 @@
 #-*- coding:utf-8 -*-
 #date:"2017-12-14,15:03"
 from django.conf.urls import url
-from django.shortcuts import HttpResponse
+from django.shortcuts import HttpResponse,render
 
 
 
 class StarkConfig(object):
+
+
+    list_display = []
 
     def __init__(self,model_class,site):
         self.model_class = model_class
@@ -33,7 +36,21 @@ class StarkConfig(object):
 
 
     def classList_view(self,request,*args,**kwargs):
-        return HttpResponse("列表")
+        #处理表中的数据
+
+        data_list = self.model_class.objects.all()
+
+        new_data_list = []
+        for row in data_list:
+            temp = []
+            for field_name in self.list_display:
+                val = getattr(row,field_name)#利用反射来查找
+                temp.append(val)
+            new_data_list.append(temp)
+
+
+
+        return render(request,"stark/classList.html",{"new_data_list":new_data_list})
 
     def add_view(self,request,*args,**kwargs):
         return HttpResponse("增加")

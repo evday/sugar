@@ -1,0 +1,33 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'stark/bootstrap/css/bootstrap.min.css' %}">
+</head>
+<body>
+<h1>列表页面</h1>
+<div class="container">
+
+<table class="table table-bordered table-hover">
+    <thead>
+
+    </thead>
+    <tbody>
+    {% for item in new_data_list %}
+    <tr>
+    {% for col in item %}
+      <td>{{ col }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+</div>
+
+</body>
+</html>
