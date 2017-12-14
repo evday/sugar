@@ -36,7 +36,20 @@ class StarkConfig(object):
 
 
     def classList_view(self,request,*args,**kwargs):
-        #处理表中的数据
+        #展示表头
+        head_list = []
+        for field_name in self.list_display:
+            if isinstance(field_name,str):
+                #根据类和字段名称获取字段对象的verbose_name
+
+                #如果是字段的话，就获取字段的verbose_name
+                verbose_name = self.model_class._meta.get_field(field_name).verbose_name
+            else:
+                #如果是函数的，就执行函数里面的方法
+                verbose_name = field_name(self,is_header = True) #函数名加括号，调用
+            head_list.append(verbose_name)
+
+        #两层列表展示数据
 
         data_list = self.model_class.objects.all()
 
@@ -44,13 +57,16 @@ class StarkConfig(object):
         for row in data_list:
             temp = []
             for field_name in self.list_display:
-                val = getattr(row,field_name)#利用反射来查找
+                if isinstance(field_name,str): #不是字符串不能用getattr
+                    val = getattr(row,field_name)#利用反射来查找
+                else:
+                    val = field_name(self,row)
                 temp.append(val)
             new_data_list.append(temp)
 
 
 
-        return render(request,"stark/classList.html",{"new_data_list":new_data_list})
+        return render(request,"stark/classList.html",{"new_data_list":new_data_list,"head_list":head_list})
 
     def add_view(self,request,*args,**kwargs):
         return HttpResponse("增加")

@@ -13,7 +13,11 @@
 
 <table class="table table-bordered table-hover">
     <thead>
-
+    <tr>
+        {% for head in head_list %}
+        <td>{{ head }}</td>
+    {% endfor %}
+    </tr>
     </thead>
     <tbody>
     {% for item in new_data_list %}
