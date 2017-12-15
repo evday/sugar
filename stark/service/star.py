@@ -26,12 +26,12 @@ class StarkConfig(object):
     def edit(self,obj = None,is_header = False):
         if is_header:
             return "编辑"
-        return mark_safe("<a href='%s'>编辑</a>"%(self.get_change_url(obj.id)))
+        return mark_safe("<a href='%s'><button class='btn btn-success'>编辑</button></a>"%(self.get_change_url(obj.id)))
     #显示删除
     def delete(self,obj = None,is_header = False):
         if is_header:
             return "删除"
-        return mark_safe("<a href='%s'>删除</a>"%(self.get_delete_url(obj.id)))
+        return mark_safe("<a href='%s'><button class='btn btn-danger'>删除</button></a>"%(self.get_delete_url(obj.id)))
     #显示增加
     def add(self,obj = None,is_header = False):
         if is_header:
@@ -171,7 +171,11 @@ class StarkConfig(object):
 
     #删除页面视图
     def delete_view(self, request,nid, *args, **kwargs):
-        return HttpResponse("删除")
+        if request.method == "GET":
+            return render(request,'my_delete.html',{"back_url":self.get_changelist_url()})
+        else:
+            self.model_class.objects.filter(pk=nid).delete()
+            return redirect(self.get_changelist_url())
 
     #修改页面视图
     def change_view(self, request, nid,*args, **kwargs):
