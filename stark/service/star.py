@@ -4,7 +4,7 @@
 from django.conf.urls import url
 from django.utils.safestring import mark_safe
 from django.shortcuts import HttpResponse,render
-
+from django.urls import reverse
 
 
 class StarkConfig(object):
@@ -19,11 +19,16 @@ class StarkConfig(object):
     def edit(self,obj = None,is_header = False):
         if is_header:
             return "编辑"
-        return mark_safe("<a href='/edit/%s'>编辑</a>"%(obj.id,))
+        return mark_safe("<a href='%s'>编辑</a>"%(self.get_change_url(obj.id)))
     def delete(self,obj = None,is_header = False):
         if is_header:
             return "删除"
-        return mark_safe("<a href='/edit/%s'>删除</a>"%(obj.id,))
+        return mark_safe("<a href='%s'>删除</a>"%(self.get_delete_url(obj.id)))
+
+    def add(self,obj = None,is_header = False):
+        if is_header:
+            return "增加"
+        return mark_safe("<a href='%s'>增加</a>"%(self.get_add_url()))
 
     def __init__(self,model_class,site):
         self.model_class = model_class
@@ -34,6 +39,7 @@ class StarkConfig(object):
         if self.list_display:
             data.extend(self.list_display)
             data.append(StarkConfig.edit)
+            data.append(StarkConfig.add)
             data.append(StarkConfig.delete)
             data.insert(0,StarkConfig.checkbox)
         return data
@@ -44,7 +50,7 @@ class StarkConfig(object):
 
         app_model_name = (self.model_class._meta.app_label,self.model_class._meta.model_name)
         urlpatterns = [
-            url(r'^$',self.classList_view,name="%s_%s_classList" %app_model_name),
+            url(r'^$',self.changelist_view,name="%s_%s_changelist" %app_model_name),
             url(r'^add/$',self.add_view,name="%s_%s_add" %app_model_name),
             url(r'^(\d+)/delete/$',self.delete_view,name="%s_%s_delete" %app_model_name),
             url(r'^(\d+)/change/$',self.change_view,name="%s_%s_change" %app_model_name),
@@ -53,6 +59,25 @@ class StarkConfig(object):
         urlpatterns.extend(self.extra_url())
 
         return urlpatterns
+
+    def get_change_url(self,nid):
+        name = 'stark:%s_%s_change'%(self.model_class._meta.app_label,self.model_class._meta.model_name)
+        edit_url = reverse(name,args=(nid,))
+        return edit_url
+    def get_add_url(self):
+        name = 'stark:%s_%s_add'%(self.model_class._meta.app_label,self.model_class._meta.model_name)
+        add_url = reverse(name)
+        return add_url
+
+    def get_delete_url(self,nid):
+        name = 'stark:%s_%s_delete'%(self.model_class._meta.app_label,self.model_class._meta.model_name)
+        delete_url = reverse(name,args=(nid,))
+        return delete_url
+
+    def get_changelist_url(self):
+        name = 'stark:%s_%s_changelist'%(self.model_class._meta.app_label,self.model_class._meta.model_name)
+        changelist_url = reverse(name)
+        return changelist_url
 
     def extra_url(self):
         return []
@@ -64,7 +89,7 @@ class StarkConfig(object):
         return self.get_urls()
 
 
-    def classList_view(self,request,*args,**kwargs):
+    def changelist_view(self,request,*args,**kwargs):
 
         #展示表头
         head_list = []
