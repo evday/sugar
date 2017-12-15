@@ -49,7 +49,7 @@ class StarkConfig(object):
         return data
 
     #是否显示增加按钮
-    show_add_btn = True
+    show_add_btn = False
 
     def get_show_add_btn(self):
         return self.show_add_btn

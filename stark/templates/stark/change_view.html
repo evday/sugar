@@ -1,16 +1,15 @@
+
+{% load staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="{% static 'stark/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'stark/css/stark_form.css' %}">
 </head>
 <body>
-<h1>添加页面</h1>
-<form method="post" novalidate>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" >提交</button>
-</form>
-
+<h1>修改页面</h1>
+{% include 'stark/form.html' %}
 </body>
 </html>

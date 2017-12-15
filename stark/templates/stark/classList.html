@@ -11,25 +11,29 @@
 <h1>列表页面</h1>
 
 <div class="container">
-<a href="{{ add_url }}"><button class="btn btn-primary">添加</button></a>
-<table class="table table-bordered table-hover">
-    <thead>
-    <tr>
-        {% for head in head_list %}
-        <td>{{ head }}</td>
-    {% endfor %}
-    </tr>
-    </thead>
-    <tbody>
-    {% for item in new_data_list %}
-    <tr>
-    {% for col in item %}
-      <td>{{ col }}</td>
+    {% if show_add_btn %}
+        <a href="{{ add_url }}">
+            <button class="btn btn-primary">添加</button>
+        </a>
+    {% endif %}
+    <table class="table table-bordered table-hover">
+        <thead>
+        <tr>
+            {% for head in head_list %}
+                <td>{{ head }}</td>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in new_data_list %}
+            <tr>
+                {% for col in item %}
+                    <td>{{ col }}</td>
+                {% endfor %}
+            </tr>
         {% endfor %}
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
 
 </div>
