@@ -3,8 +3,9 @@
 #date:"2017-12-14,15:03"
 from django.conf.urls import url
 from django.utils.safestring import mark_safe
-from django.shortcuts import HttpResponse,render
+from django.shortcuts import HttpResponse,render,redirect
 from django.urls import reverse
+from django.forms import ModelForm
 
 
 class StarkConfig(object):
@@ -39,11 +40,17 @@ class StarkConfig(object):
         if self.list_display:
             data.extend(self.list_display)
             data.append(StarkConfig.edit)
-            data.append(StarkConfig.add)
+
             data.append(StarkConfig.delete)
             data.insert(0,StarkConfig.checkbox)
         return data
 
+
+    #是否显示增加按钮
+    show_add_btn = True
+
+    def get_show_add_btn(self):
+        return self.show_add_btn
 
 
     def get_urls(self):
@@ -121,10 +128,28 @@ class StarkConfig(object):
 
 
 
-        return render(request,"stark/classList.html",{"new_data_list":new_data_list,"head_list":head_list})
+        return render(request,"stark/classList.html",{"new_data_list":new_data_list,"head_list":head_list,"add_url":self.get_add_url(),"show_add_btn":self.get_show_add_btn()})
 
     def add_view(self,request,*args,**kwargs):
-        return HttpResponse("增加")
+
+        class TestModelForm(ModelForm):
+            class Meta:
+                model = self.model_class
+                fields = "__all__"
+
+
+        if request.method == "GET":
+            form = TestModelForm()
+
+            return render(request,'stark/add_view.html',{"form":form})
+
+        if request.method == "POST":
+            form = TestModelForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect(self.get_changelist_url())
+            else:
+                return render(request, 'stark/add_view.html', {"form": form})
 
     def delete_view(self, request,nid, *args, **kwargs):
         return HttpResponse("删除")
