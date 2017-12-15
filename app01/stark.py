@@ -2,25 +2,32 @@
 #-*- coding:utf-8 -*-
 #date:"2017-12-14,14:51"
 from stark.service import star
+from django.conf.urls import url
 from . import models
 from stark.service import star
-from django.utils.safestring import mark_safe
+
+from django.shortcuts import HttpResponse
 
 
 class UserInfoConfig(star.StarkConfig):
 
-    def checkbox(self,obj = None,is_header = False):
-        if is_header:
-            return '选择'
-        return mark_safe("<input type='checkbox' name='pk' val= %s>"%(obj.id,))
 
-    def edit(self,obj = None,is_header = False):
-        if is_header:
-            return "编辑"
-        return mark_safe("<a href='/edit/%s'>编辑</a>"%(obj.id,))
+    #
+    # def extra_url(self):
+    #     urlpatterns = [
+    #         url(r'^xxxx/$',self.func)
+    #     ]
+    #     return urlpatterns
+    #
+    # def func(self,request):
+    #     return HttpResponse("hello")
 
-    list_display = [checkbox,"id","name",edit]
+    list_display = ["id","name"] #先找自己的list_display
 
 
 star.site.register(models.UserInfo,UserInfoConfig)
-star.site.register(models.Role)
+
+
+class RoleConfig(star.StarkConfig):
+    list_display = ["id", "caption"]
+star.site.register(models.Role,RoleConfig)

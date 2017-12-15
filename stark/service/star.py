@@ -2,6 +2,7 @@
 #-*- coding:utf-8 -*-
 #date:"2017-12-14,15:03"
 from django.conf.urls import url
+from django.utils.safestring import mark_safe
 from django.shortcuts import HttpResponse,render
 
 
@@ -10,10 +11,34 @@ class StarkConfig(object):
 
 
     list_display = []
+    def checkbox(self,obj = None,is_header = False):
+        if is_header:
+            return '选择'
+        return mark_safe("<input type='checkbox' name='pk' val= %s>"%(obj.id,))
+
+    def edit(self,obj = None,is_header = False):
+        if is_header:
+            return "编辑"
+        return mark_safe("<a href='/edit/%s'>编辑</a>"%(obj.id,))
+    def delete(self,obj = None,is_header = False):
+        if is_header:
+            return "删除"
+        return mark_safe("<a href='/edit/%s'>删除</a>"%(obj.id,))
 
     def __init__(self,model_class,site):
         self.model_class = model_class
         self.site = site
+
+    def get_list_display(self):
+        data = []
+        if self.list_display:
+            data.extend(self.list_display)
+            data.append(StarkConfig.edit)
+            data.append(StarkConfig.delete)
+            data.insert(0,StarkConfig.checkbox)
+        return data
+
+
 
     def get_urls(self):
 
@@ -24,9 +49,13 @@ class StarkConfig(object):
             url(r'^(\d+)/delete/$',self.delete_view,name="%s_%s_delete" %app_model_name),
             url(r'^(\d+)/change/$',self.change_view,name="%s_%s_change" %app_model_name),
         ]
+
+        urlpatterns.extend(self.extra_url())
+
         return urlpatterns
 
-
+    def extra_url(self):
+        return []
 
 
 
@@ -36,9 +65,10 @@ class StarkConfig(object):
 
 
     def classList_view(self,request,*args,**kwargs):
+
         #展示表头
         head_list = []
-        for field_name in self.list_display:
+        for field_name in self.get_list_display():
             if isinstance(field_name,str):
                 #根据类和字段名称获取字段对象的verbose_name
 
@@ -56,11 +86,11 @@ class StarkConfig(object):
         new_data_list = []
         for row in data_list:
             temp = []
-            for field_name in self.list_display:
+            for field_name in self.get_list_display():
                 if isinstance(field_name,str): #不是字符串不能用getattr
-                    val = getattr(row,field_name)#利用反射来查找
+                    val = getattr(row,field_name)#利用字符串去取对象里面的数据用反射
                 else:
-                    val = field_name(self,row)
+                    val = field_name(self,row) #当前对象row传递给obj
                 temp.append(val)
             new_data_list.append(temp)
 
