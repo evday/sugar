@@ -8,43 +8,45 @@ from django.urls import reverse
 from django.forms import ModelForm
 
 
-class StarkConfig(object):
 
+
+class StarkConfig(object):
+    def __init__(self, model_class, site):
+        self.model_class = model_class
+        self.site = site
 
     list_display = []
+
+    #显示checkbox
     def checkbox(self,obj = None,is_header = False):
         if is_header:
             return '选择'
         return mark_safe("<input type='checkbox' name='pk' val= %s>"%(obj.id,))
-
+    #显示编辑
     def edit(self,obj = None,is_header = False):
         if is_header:
             return "编辑"
         return mark_safe("<a href='%s'>编辑</a>"%(self.get_change_url(obj.id)))
+    #显示删除
     def delete(self,obj = None,is_header = False):
         if is_header:
             return "删除"
         return mark_safe("<a href='%s'>删除</a>"%(self.get_delete_url(obj.id)))
-
+    #显示增加
     def add(self,obj = None,is_header = False):
         if is_header:
             return "增加"
         return mark_safe("<a href='%s'>增加</a>"%(self.get_add_url()))
 
-    def __init__(self,model_class,site):
-        self.model_class = model_class
-        self.site = site
-
+    #配置list_display
     def get_list_display(self):
         data = []
         if self.list_display:
             data.extend(self.list_display)
             data.append(StarkConfig.edit)
-
             data.append(StarkConfig.delete)
             data.insert(0,StarkConfig.checkbox)
         return data
-
 
     #是否显示增加按钮
     show_add_btn = True
@@ -52,7 +54,25 @@ class StarkConfig(object):
     def get_show_add_btn(self):
         return self.show_add_btn
 
+    #ModelFormClass
+    model_form_class = None
+    def get_model_form_class(self):
+        if self.model_form_class:
+            return self.model_form_class
 
+        #方法一
+        # class TestModelForm(ModelForm):
+        #     class Meta:
+        #         model = self.model_class
+        #         fields = "__all__"
+
+        #方法二，利用type生成
+        meta = type("Meta",(object,),{"model":self.model_class,"fields":"__all__"})
+        TestModelForm = type("TestModelForm",(ModelForm,),{"Meta":meta})
+        return TestModelForm
+
+
+    #动态显示增删改查url
     def get_urls(self):
 
         app_model_name = (self.model_class._meta.app_label,self.model_class._meta.model_name)
@@ -67,35 +87,38 @@ class StarkConfig(object):
 
         return urlpatterns
 
+    #反向生成修改页面url
     def get_change_url(self,nid):
         name = 'stark:%s_%s_change'%(self.model_class._meta.app_label,self.model_class._meta.model_name)
         edit_url = reverse(name,args=(nid,))
         return edit_url
+    # 反向生成增加页面url
     def get_add_url(self):
         name = 'stark:%s_%s_add'%(self.model_class._meta.app_label,self.model_class._meta.model_name)
         add_url = reverse(name)
         return add_url
-
+    # 反向生成删除页面url
     def get_delete_url(self,nid):
         name = 'stark:%s_%s_delete'%(self.model_class._meta.app_label,self.model_class._meta.model_name)
         delete_url = reverse(name,args=(nid,))
         return delete_url
-
+    #反向生成列表页面url
     def get_changelist_url(self):
         name = 'stark:%s_%s_changelist'%(self.model_class._meta.app_label,self.model_class._meta.model_name)
         changelist_url = reverse(name)
         return changelist_url
 
+    #扩展除增删改查之外的url
     def extra_url(self):
         return []
 
 
 
-    @property
+    @property #property 让类方法伪装成静态字段，可以不加括号就被调用
     def urls(self):
         return self.get_urls()
 
-
+    #列表页面视图
     def changelist_view(self,request,*args,**kwargs):
 
         #展示表头
@@ -130,32 +153,40 @@ class StarkConfig(object):
 
         return render(request,"stark/classList.html",{"new_data_list":new_data_list,"head_list":head_list,"add_url":self.get_add_url(),"show_add_btn":self.get_show_add_btn()})
 
+    #添加页面视图
     def add_view(self,request,*args,**kwargs):
-
-        class TestModelForm(ModelForm):
-            class Meta:
-                model = self.model_class
-                fields = "__all__"
-
-
+        model_form_class = self.get_model_form_class()
         if request.method == "GET":
-            form = TestModelForm()
+            form = model_form_class()
 
             return render(request,'stark/add_view.html',{"form":form})
 
         if request.method == "POST":
-            form = TestModelForm(request.POST)
+            form = model_form_class(request.POST)
             if form.is_valid():
                 form.save()
                 return redirect(self.get_changelist_url())
             else:
                 return render(request, 'stark/add_view.html', {"form": form})
 
+    #删除页面视图
     def delete_view(self, request,nid, *args, **kwargs):
         return HttpResponse("删除")
 
+    #修改页面视图
     def change_view(self, request, nid,*args, **kwargs):
-        return HttpResponse("修改")
+
+        obj = self.model_class.objects.filter(pk=nid).first()
+        model_form_class = self.get_model_form_class()
+        if request.method == "GET":
+            form = model_form_class(instance=obj)
+            return render(request,"stark/change_view.html",{"form":form})
+        if request.method == "POST":
+            form = model_form_class(instance=obj,data=request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect(self.get_changelist_url())
+            return render(request, "stark/change_view.html", {"form": form})
 
 class StarkSite(object):
     def __init__(self):
