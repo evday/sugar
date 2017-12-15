@@ -60,11 +60,12 @@ class StarkConfig(object):
         if self.model_form_class:
             return self.model_form_class
 
-        #方法一
+        # 方法一
         # class TestModelForm(ModelForm):
         #     class Meta:
         #         model = self.model_class
         #         fields = "__all__"
+        # return TestModelForm
 
         #方法二，利用type生成
         meta = type("Meta",(object,),{"model":self.model_class,"fields":"__all__"})
@@ -171,14 +172,12 @@ class StarkConfig(object):
 
     #删除页面视图
     def delete_view(self, request,nid, *args, **kwargs):
-        if request.method == "GET":
-            return render(request,'my_delete.html',{"back_url":self.get_changelist_url()})
-        else:
-            self.model_class.objects.filter(pk=nid).delete()
-            return redirect(self.get_changelist_url())
+
+        self.model_class.objects.filter(pk=nid).delete()
+        return redirect(self.get_changelist_url())
 
     #修改页面视图
-    def change_view(self, request, nid,*args, **kwargs):
+    def change_view(self, request,nid,*args,**kwargs):
 
         obj = self.model_class.objects.filter(pk=nid).first()
         model_form_class = self.get_model_form_class()
