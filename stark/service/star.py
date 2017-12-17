@@ -7,6 +7,10 @@ from django.shortcuts import HttpResponse,render,redirect
 from django.urls import reverse
 from django.forms import ModelForm
 
+from pure_pagination import Paginator, EmptyPage, PageNotAnInteger
+
+
+
 
 
 
@@ -149,10 +153,24 @@ class StarkConfig(object):
                     val = field_name(self,row) #当前对象row传递给obj
                 temp.append(val)
             new_data_list.append(temp)
+        print(new_data_list,'=====================')
+        try:
+            page = request.GET.get('page', 1)
+        except PageNotAnInteger:
+            page = 1
+        p = Paginator(new_data_list, 10, request=request)
+        # 实例化一个分页器对象，需要三个参数，第一个是一个可迭代对象，第二个是分多少页
+        orgs = p.page(page)
 
 
 
-        return render(request,"stark/classList.html",{"new_data_list":new_data_list,"head_list":head_list,"add_url":self.get_add_url(),"show_add_btn":self.get_show_add_btn()})
+        return render(request,"stark/classList.html",{
+            "new_data_list":orgs,
+            "head_list":head_list,
+            "add_url":self.get_add_url(),
+            "show_add_btn":self.get_show_add_btn(),
+
+        })
 
     #添加页面视图
     def add_view(self,request,*args,**kwargs):
@@ -225,3 +243,8 @@ class StarkSite(object):
 
 site = StarkSite()
 
+'''
+
+eccgw01.boulder.ibm.com
+207.25.252.197
+'''

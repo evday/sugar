@@ -36,6 +36,11 @@ class HostConfig(star.StarkConfig):
 
     # 显示列
     list_display = ["id", "hostname", "ip", "port",is_port]
+
+    # Booklist = []
+    # for i in range(200):
+    #     Booklist.append(models.Host(hostname='eccgw01.boulder.ibm.com',ip='129.42.160.51',port=443))
+    # models.Host.objects.bulk_create(Booklist)
     # 是否显示增加按钮
     show_add_btn = True
     # 自定义错误信息
