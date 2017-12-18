@@ -153,7 +153,7 @@ class StarkConfig(object):
                     val = field_name(self,row) #当前对象row传递给obj
                 temp.append(val)
             new_data_list.append(temp)
-        print(new_data_list,'=====================')
+
         try:
             page = request.GET.get('page', 1)
         except PageNotAnInteger:

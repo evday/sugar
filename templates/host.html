@@ -1,0 +1,24 @@
+
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'stark/bootstrap/css/bootstrap.min.css' %}">
+
+</head>
+<body>
+{% for i in host_list %}
+    <p>{{ i }}</p>
+{% endfor %}
+
+<div class="bs-example" data-example-id="disabled-active-pagination">
+    <nav aria-label="...">
+      <ul class="pagination">
+        {{ page_html|safe }}
+     </ul>
+   </nav>
+  </div>
+</body>
+</html>

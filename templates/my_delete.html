@@ -19,8 +19,11 @@
 </div>
 <script src="{% static 'stark/bootstrap/js/jquery-3.1.1.js' %}"></script>
 <script>
+
     $("#modify").click(function () {
-        window.location.href = "{{ back_url }}"
+        var url = document.referrer;
+        window.location.href = url
+
     })
 </script>
 </body>

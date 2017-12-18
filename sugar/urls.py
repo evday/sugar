@@ -16,8 +16,15 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from stark.service import star
+from app02.views import host,user,edit,add,delete
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^stark/', star.site.urls),
+    url(r'^stark/$', star.site.urls),
+    url(r'^host/$', host),
+    url(r'^user/$', user),
+    url(r'^edit/(\d+)/$', edit, name="edit"),
+    url(r'^add/$', add, name="add"),
+    url(r'^delete/(\d+)/$', delete, name="delete"),
+
 ]
