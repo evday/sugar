@@ -10,51 +10,66 @@
 <body>
 <h1>列表页面</h1>
 
+
 <div class="container">
-    {% if show_add_btn %}
-        <a href="{{ add_url }}">
-            <button class="btn btn-primary">添加</button>
-        </a>
+    <div>
+        {% if c1.show_add_btn %}
+            <a href="{{ c1.add_url }}">
+                <button class="btn btn-primary">添加</button>
+            </a>
+        {% endif %}
+    </div>
+    {% if c1.show_search_form %}
+        <div class="form-group pull-right">
+            <form method="get">
+                <input type="text" class="form-control" placeholder="请输入搜索条件" name="{{ c1.search_key }}"
+                       value="{{ c1.search_form_val }}" style="display: inline-block;width: 200px"/>
+                <button class="btn btn-primary"><span class="glyphicon glyphicon-search"></span></button>
+            </form>
+        </div>
     {% endif %}
-    <table class="table table-bordered table-hover text-center">
-        <thead>
-        <tr>
-            {% for head in head_list %}
-                <td>{{ head }}</td>
-            {% endfor %}
-        </tr>
-        </thead>
-        <tbody>
-        {% for item in new_data_list.object_list %}
+
+    <form method="post">
+    {% csrf_token %}
+        {% if c1.show_actions %}
+            <div>
+                <select name="list_action" class="form-control" id="" style="display:inline-block;width: 200px;">
+                    {% for item in modify_actions %}
+                        <option value="{{ item.name }}">{{ item.text }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-primary">执行</button>
+            </div>
+        {% endif %}
+
+
+
+        <table class="table table-bordered table-hover text-center">
+            <thead>
             <tr>
-                {% for col in item %}
-                    <td>{{ col }}</td>
+                {% for head in c1.head_list %}
+                    <td>{{ head }}</td>
                 {% endfor %}
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <div class="bs-example col-md-offset-2" data-example-id="disabled-active-pagination">
+            </thead>
+            <tbody>
+            {% for item in c1.body_list %}
+                <tr>
+                    {% for col in item %}
+                        <td>{{ col }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+
+    </form>
+
+    <div class="bs-example" data-example-id="disabled-active-pagination">
         <nav aria-label="...">
             <ul class="pagination">
-                {% if new_data_list.has_previous %}
-                <li><a href="?{{ new_data_list.previous_page_number.querystring }}" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
-                 {% endif %}
-             {% for page in new_data_list.pages %}
-                 {% if page %}
-                   {% ifequal page new_data_list.number %}
-                <li class="active"><a href="?{{ page.querystring }}">{{ page }}<span class="sr-only">(current)</span></a></li>
-                 {% else %}
-                 <li><a href="?{{ page.querystring }}">{{ page }}</a></li>
-                 {% endifequal %}
-                 {% else %}
-                  <li class="none"><a href="" class="page">...</a></li>
-                 {% endif %}
-
-             {% endfor %}
-             {% if new_data_list.has_next %}
-                <li><a href="?{{ new_data_list.next_page_number.querystring }}" aria-label="Next"><span aria-hidden="true">»</span></a></li>
-            {% endif %}
+                {{ c1.pager_obj.page_html|safe }}
             </ul>
         </nav>
     </div>

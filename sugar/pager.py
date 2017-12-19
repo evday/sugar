@@ -13,8 +13,9 @@ class Pagination(object):
     """
     自定义分页
     """
-
-    def __init__(self, current_page, total_count, base_url, params, request, per_page_count=10, max_pager_count=11):
+    per_page_count = 10
+    max_pager_count = 11
+    def __init__(self, current_page, total_count, base_url, params):
         try:
             current_page = int(current_page)
         except Exception as e:
@@ -28,18 +29,18 @@ class Pagination(object):
 
 
         # 每页显示10条数据
-        self.per_page_count = per_page_count
+        self.per_page_count = self.per_page_count
 
         # 页面上应该显示的最大页码
-        max_page_num, div = divmod(total_count, per_page_count)
+        max_page_num, div = divmod(total_count, self.per_page_count)
         if div:
             max_page_num += 1
         self.max_page_num = max_page_num
 
         # 页面上默认显示11个页面（当前页在中间）
-        self.max_pager_count = max_pager_count
+        self.max_pager_count = self.max_pager_count
 
-        self.half_max_pager_count = int((max_pager_count - 1) / 2)
+        self.half_max_pager_count = int((self.max_pager_count - 1) / 2)
 
         # URL前缀
         self.base_url = base_url

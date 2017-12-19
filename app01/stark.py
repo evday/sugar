@@ -31,7 +31,23 @@ class UserInfoConfig(star.StarkConfig):
 
     model_form_class = UserInfoForm
 
-    list_display = ["id","name"] #先找自己的list_display
+    list_display = ["id","name","emil"] #先找自己的list_display
+
+    search_fields = ["name__contains",'emil__contains'] #__contains 模糊搜索
+
+    show_search_form = True
+
+    show_actions = True
+
+    def multi_del(self,request):
+
+        print(request.POST)
+        pk_list = request.POST.getlist("pk") #这个pk是我们在checkbook方法设置的
+
+        self.model_class.objects.filter(id__in = pk_list).delete()
+    multi_del.short_desc = "批量删除"
+
+    actions = [multi_del,]
 
 
 star.site.register(models.UserInfo,UserInfoConfig)
