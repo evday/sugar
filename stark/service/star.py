@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 #date:"2017-12-14,15:03"
+
+import copy
+
 from django.conf.urls import url
 from django.utils.safestring import mark_safe
 from django.shortcuts import HttpResponse,render,redirect
@@ -8,11 +11,92 @@ from django.urls import reverse
 from django.forms import ModelForm
 from django.http import QueryDict
 from django.db.models import Q
-
+from django.db.models import ForeignKey,ManyToManyField
 
 from pure_pagination import Paginator, EmptyPage, PageNotAnInteger
-
 from sugar.pager import Pagination
+
+class FilterOption(object):
+    def __init__(self,field_name,multi=False,condition=None,is_choice=False):
+        '''
+        :param field_name:  字段
+        :param multi: 是否多选
+        :param condition: 显示数据的筛选条件
+        :param is_choice: 是否是choice
+        '''
+        self.field_name = field_name
+        self.multi = multi
+        self.condition = condition
+        self.is_choice = is_choice
+
+    def get_queryset(self,_field):
+        if self.condition: #如果有筛选条件
+            return _field.rel.to.objects.filter(**self.condition)
+        else:
+            return _field.rel.to.objects.all()
+
+    def get_choices(self,_field):
+        return _field.choices #如果是choice就直接取数据库里的choices
+
+
+class FilerRow(object):
+    def __init__(self,option,data,request):
+        self.option = option
+        self.data = data
+        self.request = request
+
+    def __iter__(self):
+
+        params = copy.deepcopy(self.request.GET)
+        params._mutable = True
+        current_id = params.get(self.option.field_name) #根据字段获取id
+        current_id_list = params.getlist(self.option.field_name) #多选
+
+        if self.option.field_name in params:#如果字段在request.GET中就将它移除
+            origin_list = params.pop(self.option.field_name)
+            url = '{0}?{1}'.format(self.request.path_info,params.urlencode())
+            yield mark_safe('<a href="{0}">全部</a>'.format(url))
+
+            params.setlist(self.option.field_name,origin_list) #setlist 需要一个key 和一个list
+        else:
+            url = '{0}?{1}'.format(self.request.path_info, params.urlencode())
+            yield mark_safe('<a class="active" href="{0}">全部</a>'.format(url))#默认选中
+
+        for val in self.data:
+            if self.option.is_choice:
+                pk,text = str(val[0]),val[1]
+            else:
+                pk,text = str(val.pk),str(val)
+                # 当前URL？option.field_name
+                # 当前URL？gender=pk
+            if not self.option.multi:#如果不是多选
+                #单选
+
+                params[self.option.field_name] = pk
+                url = '{0}?{1}'.format(self.request.path_info, params.urlencode())
+
+                if current_id == pk: #当前id 等于pk默认选中
+                    yield mark_safe('<a class="active" href="{0}">{1}</a>'.format(url,text))
+                else:
+                    yield mark_safe('<a href="{0}">{1}</a>'.format(url, text))
+
+            else:
+                #多选
+                _params = copy.deepcopy(params)
+                id_list = _params.getlist(self.option.field_name) #从request.GET中取到多选字段id
+
+                if pk in current_id_list:
+                    id_list.remove(pk)
+                    _params.setlist(self.option.field_name,id_list)
+                    url = '{0}?{1}'.format(self.request.path_info, _params.urlencode())
+                    yield mark_safe('<a class="active" href="{0}">{1}</a>'.format(url, text))
+                else:
+                    id_list.append(pk)
+                    #_params 被重新赋值
+                    _params.setlist(self.option.field_name, id_list)
+                    url = '{0}?{1}'.format(self.request.path_info, _params.urlencode())
+                    yield mark_safe('<a href="{0}">{1}</a>'.format(url, text))
+
 
 
 class ChangeList(object):
@@ -28,7 +112,7 @@ class ChangeList(object):
         self.search_key = config.search_key
         self.actions = config.get_actions()
         self.show_actions = config.get_show_actions()
-
+        self.comb_filters = config.get_comb_filters()
         #搜索
         self.show_search_form = config.get_show_search_form() #是否显示搜索框
         self.search_form_val = config.request.GET.get(config.search_key,'') #获取搜索框里的value
@@ -82,6 +166,30 @@ class ChangeList(object):
     def add_url(self):
         return self.config.get_add_url()
 
+    def gen_comb_filter(self):
+        '''
+        生成器函数
+        :return:
+        '''
+
+
+
+        for option in self.comb_filters:#option 是在 stark.py 中实例化的FilterOption对象
+            _filed = self.model_class._meta.get_field(option.field_name) #获取字段
+            if isinstance(_filed,ForeignKey):
+                #获取当前字段关联的表，并获取其中所有数据
+                # data_list.append(_filed.rel.to.objects.all())
+                row = FilerRow(option,option.get_queryset(_filed),self.request)
+            elif isinstance(_filed,ManyToManyField):
+                # data_list.append(_filed.rel.to.objects.all())
+                row = FilerRow(option, option.get_queryset(_filed), self.request)
+            else:
+                # data_list.append(_filed.choices)
+                row = FilerRow(option,option.get_choices(_filed),self.request)
+
+            yield row
+
+
 
 
 class StarkConfig(object):
@@ -108,12 +216,12 @@ class StarkConfig(object):
         query_str = self.request.GET.urlencode()
         params = QueryDict(mutable=True)
         params[self._query_params_key] = query_str
-        return mark_safe("<a href='%s?%s'><button class='btn btn-success'>编辑</button></a>"%(self.get_change_url(obj.id),params.urlencode()))
+        return mark_safe("<a href='%s?%s'><span class='btn btn-success'>编辑</span></a>"%(self.get_change_url(obj.id),params.urlencode()))
     #显示删除
     def delete(self,obj = None,is_header = False):
         if is_header:
             return "删除"
-        return mark_safe("<a href='%s'><button class='btn btn-danger'>删除</button></a>"%(self.get_delete_url(obj.id)))
+        return mark_safe("<a href='%s'><span class='btn btn-danger'>删除</span></a>"%(self.get_delete_url(obj.id)))
     #显示增加
     def add(self,obj = None,is_header = False):
         if is_header:
@@ -128,6 +236,8 @@ class StarkConfig(object):
             data.append(StarkConfig.edit)
             data.append(StarkConfig.delete)
             data.insert(0,StarkConfig.checkbox)
+
+
         return data
 
     #是否显示增加按钮
@@ -205,6 +315,14 @@ class StarkConfig(object):
         return result
 
 
+    #组合搜索
+    comb_filters = []
+    def get_comb_filters(self):
+        result = []
+        if self.comb_filters:
+            result.extend(self.comb_filters)
+        return result
+
 
     #动态显示增删改查url
     def get_urls(self):
@@ -262,11 +380,22 @@ class StarkConfig(object):
             if ret:
                 return ret
 
+        comb_condition = {}
+        option_list = self.get_comb_filters()
+        for key in request.GET.keys():
+            value_list = request.GET.getlist(key)
+            flag = False
+            for option in option_list:
+                if option.field_name == key:
+                    flag = True
+                    break
+
+            if flag:
+                comb_condition["%s__in"%key] = value_list
 
 
-
-
-        query_list = self.model_class.objects.filter(self.get_search_condition())
+        #此处一定要去重，要不然多对多字段会取出重复值
+        query_list = self.model_class.objects.filter(self.get_search_condition()).filter(**comb_condition).distinct()
 
         c1 = ChangeList(self,query_list)
 

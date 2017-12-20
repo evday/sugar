@@ -28,17 +28,15 @@
                 </div>
 
                   <form method="post">
-                <div class="input-group col-md-3 col-md-offset-3" style="display: inline-block">
+                <div class="input-group col-md-3" style="margin-top: 20px">
 
                         {% csrf_token %}
 
                         <div>
                             <select name="list_action" class="form-control" id=""
-                                    style="display:inline-block;width: 200px;">
+                                    style="display:inline-block;width: 200px;margin-bottom: 20px">
                                      <option  value="">---------</option>
                                     <option value="批量删除">批量删除</option>
-
-
 
                             </select>
                             <button class="btn btn-primary" style="border-radius: 0 !important;">执行</button>

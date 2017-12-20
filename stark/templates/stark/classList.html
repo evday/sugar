@@ -6,11 +6,32 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="stylesheet" href="{% static 'stark/bootstrap/css/bootstrap.min.css' %}">
+    <style>
+        .list-filter a{
+            display: inline-block;
+            padding:3px 6px;
+            margin: 3px 0;
+            border: 1px solid #2e6da4;
+
+        }
+        .list-filter a.active{
+            background-color: #2e6da4;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 <h1>列表页面</h1>
 
-
+<div class="list-filter">
+    {% for item in c1.gen_comb_filter %}
+        <div>
+            {% for col in item %}
+                {{ col }}
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>
 <div class="container">
     <div>
         {% if c1.show_add_btn %}
@@ -30,7 +51,7 @@
     {% endif %}
 
     <form method="post">
-    {% csrf_token %}
+        {% csrf_token %}
         {% if c1.show_actions %}
             <div>
                 <select name="list_action" class="form-control" id="" style="display:inline-block;width: 200px;">

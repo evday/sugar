@@ -11,6 +11,12 @@ from stark.service import star
 from . import models
 
 
+
+
+
+
+
+
 class HostConfigForm(ModelForm):
     class Meta:
         model = models.Host
@@ -66,3 +72,58 @@ class HostConfig(star.StarkConfig):
             return redirect(self.get_changelist_url())
 
 star.site.register(models.Host, HostConfig)
+
+
+
+class DepartmentConfig(star.StarkConfig):
+
+
+    show_add_btn = True
+    list_display = ["id","caption"]
+
+star.site.register(models.Department,DepartmentConfig)
+
+class UserInfoConfig(star.StarkConfig):
+    def display_gender(self,obj=None,is_header = False):
+        if is_header:
+            return "性别"
+        return obj.get_gender_display()
+
+    def display_depart(self,obj=None,is_header = False):
+        if is_header:
+            return "部门"
+
+        return obj.depart.caption
+
+    def display_role(self, obj=None, is_header=False):
+        if is_header:
+            return "角色"
+
+        html = []
+        role_list = obj.roles.all()
+        for role in role_list:
+            html.append(role.title)
+
+        return ",".join(html)
+
+
+
+
+    show_add_btn = True
+    list_display =  ["id","name",display_gender,display_depart,display_role]
+
+    comb_filters = [
+        star.FilterOption("gender",is_choice=True),
+        star.FilterOption("depart"),
+        star.FilterOption("roles",multi=True)
+
+    ]
+
+
+
+star.site.register(models.UserInfo,UserInfoConfig)
+
+class RoleConfig(star.StarkConfig):
+    show_add_btn = True
+    list_display = ["id","title"]
+star.site.register(models.Role,RoleConfig)
