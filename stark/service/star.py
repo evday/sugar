@@ -3,6 +3,7 @@
 #date:"2017-12-14,15:03"
 
 import copy
+import json
 
 from django.conf.urls import url
 from django.utils.safestring import mark_safe
@@ -289,9 +290,9 @@ class StarkConfig(object):
         condition.connector = "or"
         if key_words and self.get_show_search_form():
             for field_name in search_fields:
-                print(field_name,'------------')
+
                 condition.children.append((field_name,key_words))
-                print(condition,'999999999999999999999')
+
         return condition
 
     def wrapper(self,view_func):
@@ -404,18 +405,25 @@ class StarkConfig(object):
     #添加页面视图
     def add_view(self,request,*args,**kwargs):
         model_form_class = self.get_model_form_class()
+        _popbackid = request.GET.get("_popbackid")
         if request.method == "GET":
             form = model_form_class()
-
             return render(request,'stark/add_view.html',{"form":form})
+
 
         if request.method == "POST":
             form = model_form_class(request.POST)
             if form.is_valid():
-                form.save()
+                #数据库中创建新数据
+                new_obj = form.save()
+                if _popbackid:
+                    #是一个popup请求
+                    #render一个页面，写js自执行函数
+                    result = {"id":new_obj.pk,"text":str(new_obj),"popbackid":_popbackid}
+                    return render(request,'stark/pupup_response.html',{"json_result":json.dumps(result,ensure_ascii=False)})
                 return redirect(self.get_changelist_url())
             else:
-                return render(request, 'stark/add_view.html', {"form": form})
+                return render(request, 'stark/add_view.html', {"form": form}) #这里的form 就是templatetags里面用的model_form_obj
 
     #删除页面视图
     def delete_view(self, request,nid, *args, **kwargs):

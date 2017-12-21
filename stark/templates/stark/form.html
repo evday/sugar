@@ -1,24 +1,46 @@
 <div class="container">
-<div class="row col-md-6 col-md-offset-2">
-    <form method="post" novalidate class="form-horizontal">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="form-group">
-                <label for="inputEmail3" class="col-sm-3 control-label">{{ field.label }}：</label>
-                <div class="col-sm-9">
-                    {{ field }}
+    <div class="row col-md-6 col-md-offset-2">
+        <form method="post" novalidate class="form-horizontal">
+            {% csrf_token %}
+            {% for dic in form %}
+                <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-3 control-label">{{ dic.item.field.label }}：</label>
+                    <div class="col-sm-9">
+                        <!-- 判断，如果field是ModelChoiceField，则FK； 如果是ModelMultipleChoiceField，则M2M -->
+                        <div class="col-md-10">
+                            {{ dic.item }}
+                        </div>
+                        <div class="col-md-2">
+                            {% if dic.is_popup %}
+                                <a onclick="popUp('{{ dic.popup_url }}')"><span class="glyphicon glyphicon-plus"></span></a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-sm-10 pull-right">
+                        <span class="error_msg">{{ field.errors.0 }}</span>
+                    </div>
                 </div>
-                <div class="col-sm-10 pull-right">
-                    <span class="error_msg">{{ field.errors.0 }}</span>
-                </div>
+
+            {% endfor %}
+            <div class="pull-right">
+                <button type="submit" value="提交" class="btn btn-primary" id="save_btn">提交</button>
             </div>
 
-        {% endfor %}
-        <div class="pull-right">
-            <button type="submit" value="提交" class="btn btn-primary" id="save_btn">提交</button>
-        </div>
+        </form>
+    </div>
 
-    </form>
-</div>
 
+    <script type="text/javascript">
+        function popupCallback(dic) {
+            var op = document.createElement("option");
+            op.value = dic.id;
+            op.text = dic.text;
+            op.setAttribute("selected", "selected");
+            document.getElementById(dic.popbackid).appendChild(op)
+        }
+
+        function popUp(url) {
+            var popupPage = window.open(url, url, "height:300,width:300")
+        }
+    </script>
 </div>
