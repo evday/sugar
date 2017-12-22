@@ -4,7 +4,7 @@
             {% csrf_token %}
             {% for dic in form %}
                 <div class="form-group">
-                    <label for="inputEmail3" class="col-sm-3 control-label">{{ dic.item.field.label }}：</label>
+                    <label for="inputEmail3" class="col-sm-3 control-label">{{ dic.item.label }}：</label>
                     <div class="col-sm-9">
                         <!-- 判断，如果field是ModelChoiceField，则FK； 如果是ModelMultipleChoiceField，则M2M -->
                         <div class="col-md-10">
@@ -16,8 +16,8 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="col-sm-10 pull-right">
-                        <span class="error_msg">{{ field.errors.0 }}</span>
+                    <div class="col-sm-5 pull-right">
+                        <span class="error_msg">{{ dic.item.errors.0 }}</span>
                     </div>
                 </div>
 

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'app01.apps.App01Config',
     'app02.apps.App02Config',
     'pure_pagination',
+    'crm.apps.CrmConfig',
 
 
 ]
